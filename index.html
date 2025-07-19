@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mac Productions - Produção Audiovisual Estratégica</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Alpine.js (com 'defer' para garantir que o HTML seja carregado antes) -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        /* Estilo para esconder elementos antes do Alpine.js inicializar, evitando "piscar" */
+        [x-cloak] { display: none !important; }
+
+        /* Estilos personalizados */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* bg-gray-900 */
+            color: #F3F4F6; /* text-gray-200 */
+        }
+        .hero-video-overlay {
+            background-color: rgba(17, 24, 39, 0.75);
+        }
+        .brand-accent {
+            color: #38BDF8; /* text-sky-400 */
+        }
+        
+        /* Efeito de overlay no portfólio */
+        .portfolio-item { cursor: pointer; }
+        .portfolio-item .overlay { opacity: 0; transition: opacity 0.3s ease-in-out; }
+        .portfolio-item:hover .overlay { opacity: 1; }
+
+        /* Estilos para o Lightbox (Galeria Popup) */
+        .lightbox {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 1000; padding: 1rem; box-sizing: border-box;
+        }
+        .lightbox-content { position: relative; width: 100%; height: 75%; display: flex; justify-content: center; align-items: center; }
+        .lightbox-image { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; transition: transform 0.3s ease; }
+        .lightbox-thumbnails {
+            height: 20%; width: 100%; display: flex; justify-content: center;
+            align-items: center; gap: 10px; padding-top: 1rem; overflow-x: auto;
+        }
+        .lightbox-thumbnail {
+            height: 80px; cursor: pointer; border-radius: 4px;
+            border: 2px solid transparent; transition: border-color 0.2s, transform 0.2s;
+        }
+        .lightbox-thumbnail:hover { transform: scale(1.05); }
+        .lightbox-thumbnail.active { border-color: #38BDF8; }
+        
+        .lightbox-button {
+            background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(5px); border-radius: 50%; width: 44px; height: 44px;
+            font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: background-color 0.2s;
+        }
+        .lightbox-button:hover { background: rgba(255,255,255,0.2); }
+        .lightbox-close { position: absolute; top: 20px; right: 20px; z-index: 1001; }
+        .nav-prev { position: absolute; left: 1rem; }
+        .nav-next { position: absolute; right: 1rem; }
+    </style>
+</head>
+<body class="antialiased" x-data="pageLogic()">
+
+    <!-- CABEÇALHO E NAVEGAÇÃO -->
+    <header x-data="{ mobileMenuOpen: false }" class="bg-gray-900/80 backdrop-blur-sm sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold text-white">Mac<span class="brand-accent">Productions</span></a>
+            <nav class="hidden md:flex items-center space-x-6">
+                <a href="#servicos" class="text-gray-300 hover:text-sky-400 transition">Serviços</a>
+                <a href="#portfolio" class="text-gray-300 hover:text-sky-400 transition">Portfólio</a>
+                <a href="#sobre" class="text-gray-300 hover:text-sky-400 transition">Sobre Nós</a>
+                <a href="#contato" class="bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg transition">Solicitar Orçamento</a>
+            </nav>
+            <!-- Botão do Menu Mobile com Alpine.js -->
+            <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden text-white" aria-label="Abrir menu">
+                <svg x-show="!mobileMenuOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
+                <svg x-show="mobileMenuOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" x-cloak><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+        <!-- Menu Mobile com Alpine.js -->
+        <div x-show="mobileMenuOpen" @click.away="mobileMenuOpen = false" class="md:hidden bg-gray-800" x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 transform -translate-y-2"
+             x-transition:enter-end="opacity-100 transform translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 transform translate-y-0"
+             x-transition:leave-end="opacity-0 transform -translate-y-2">
+            <a @click="mobileMenuOpen = false" href="#servicos" class="block py-2 px-6 text-gray-300 hover:bg-gray-700">Serviços</a>
+            <a @click="mobileMenuOpen = false" href="#portfolio" class="block py-2 px-6 text-gray-300 hover:bg-gray-700">Portfólio</a>
+            <a @click="mobileMenuOpen = false" href="#sobre" class="block py-2 px-6 text-gray-300 hover:bg-gray-700">Sobre Nós</a>
+            <a @click="mobileMenuOpen = false" href="#contato" class="block py-4 px-6 text-white text-center bg-sky-500 hover:bg-sky-600">Solicitar Orçamento</a>
+        </div>
+    </header>
+
+    <main>
+        <!-- SEÇÃO HERO -->
+        <section id="home" class="relative h-screen flex items-center justify-center text-center overflow-hidden">
+            <video autoplay loop muted playsinline class="absolute z-0 w-auto min-w-full min-h-full max-w-none">
+                <source src="https://assets.mixkit.co/videos/preview/mixkit-a-man-in-a-suit-works-on-his-laptop-343-large.mp4" type="video/mp4">
+                Seu navegador não suporta a tag de vídeo.
+            </video>
+            <div class="hero-video-overlay absolute inset-0 z-10"></div>
+            <div class="relative z-20 container mx-auto px-6">
+                <h1 class="text-4xl md:text-6xl font-black text-white leading-tight mb-4">
+                    Produção Audiovisual que Transforma <span class="brand-accent">Visão Criativa</span> em <span class="brand-accent">Resultados.</span>
+                </h1>
+                <p class="text-lg md:text-xl text-gray-300 max-w-4xl mx-auto mb-8">
+                    Unimos excelência técnica e entendimento de negócio para criar vídeos e fotos que não apenas emocionam, mas geram impacto mensurável para sua marca.
+                </p>
+                <a href="#contato" class="inline-block bg-sky-500 hover:bg-sky-600 text-white font-semibold py-3 px-8 rounded-lg transition-transform transform hover:scale-105">Solicite um Orçamento</a>
+            </div>
+        </section>
+
+        <!-- SEÇÃO SERVIÇOS -->
+        <section id="servicos" class="py-20 bg-gray-900">
+            <div class="container mx-auto px-6">
+                <h2 class="text-4xl font-extrabold text-center mb-4">Nossas <span class="brand-accent">Especialidades</span></h2>
+                <p class="text-lg text-gray-400 text-center max-w-3xl mx-auto mb-12">Demonstramos profundidade em cada área, tratando cada especialidade como uma unidade de negócio distinta para entregar resultados superiores.</p>
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="bg-gray-800 p-8 rounded-xl shadow-lg transform hover:-translate-y-2 transition duration-300">
+                        <div class="text-sky-400 mb-4"><i class="fas fa-calendar-alt text-4xl"></i></div>
+                        <h3 class="text-2xl font-bold mb-3 text-white">Produção para Eventos</h3>
+                        <p class="text-gray-400">Cobertura de congressos, feiras e lançamentos. Capturamos a energia do seu evento e a transformamos em uma poderosa ferramenta de marketing.</p>
+                    </div>
+                    <div class="bg-gray-800 p-8 rounded-xl shadow-lg transform hover:-translate-y-2 transition duration-300">
+                        <div class="text-sky-400 mb-4"><i class="fas fa-building text-4xl"></i></div>
+                        <h3 class="text-2xl font-bold mb-3 text-white">Vídeos Institucionais</h3>
+                        <p class="text-gray-400">Mais que vídeos, entregamos ferramentas de crescimento. Produzimos conteúdo que fortalece sua marca, engaja colaboradores e comunica seus valores.</p>
+                    </div>
+                    <div class="bg-gray-800 p-8 rounded-xl shadow-lg transform hover:-translate-y-2 transition duration-300">
+                        <div class="text-sky-400 mb-4"><i class="fas fa-futbol text-4xl"></i></div>
+                        <h3 class="text-2xl font-bold mb-3 text-white">Produção Esportiva</h3>
+                        <p class="text-gray-400">Entendemos a dinâmica do esporte. Capturamos a ação, contamos a história e construímos a lenda de atletas e clubes com impacto e emoção.</p>
+                    </div>
+                    <div class="bg-gray-800 p-8 rounded-xl shadow-lg transform hover:-translate-y-2 transition duration-300">
+                        <div class="text-sky-400 mb-4"><i class="fas fa-share-alt text-4xl"></i></div>
+                        <h3 class="text-2xl font-bold mb-3 text-white">Conteúdo para Redes Sociais</h3>
+                        <p class="text-gray-400">Produções ágeis e criativas, como reels e vídeos curtos, para engajar sua audiência online e construir uma comunidade fiel à sua marca.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- SEÇÃO ABORDAGEM ESTRATÉGICA -->
+        <section id="abordagem" class="py-20">
+            <div class="container mx-auto px-6">
+                <h2 class="text-4xl font-extrabold text-center mb-2">Nossa Abordagem Estratégica</h2>
+                <p class="text-lg text-gray-400 text-center mb-12 max-w-3xl mx-auto">Não apertamos apenas o 'play'. Construímos cada projeto sobre uma base sólida de estratégia, criatividade e excelência técnica.</p>
+                <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                    <div class="bg-gray-800 p-8 rounded-lg"><div class="text-5xl brand-accent mb-4 font-black">1</div><h3 class="text-xl font-bold text-white mb-2">Imersão e Estratégia</h3><p class="text-gray-400">Mergulhamos no seu negócio para entender seus objetivos. Definimos juntos o plano de ação para garantir que o resultado final gere valor real.</p></div>
+                    <div class="bg-gray-800 p-8 rounded-lg"><div class="text-5xl brand-accent mb-4 font-black">2</div><h3 class="text-xl font-bold text-white mb-2">Produção e Criatividade</h3><p class="text-gray-400">Com o roteiro definido, nossa equipe entra em campo com equipamentos de ponta e um olhar criativo para capturar imagens que contam sua história.</p></div>
+                    <div class="bg-gray-800 p-8 rounded-lg"><div class="text-5xl brand-accent mb-4 font-black">3</div><h3 class="text-xl font-bold text-white mb-2">Pós-produção e Entrega</h3><p class="text-gray-400">A mágica acontece na edição, onde transformamos o material bruto em uma peça final polida, com trilha, cores e gráficos que elevam a produção.</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO PORTFÓLIO -->
+        <section id="portfolio" class="py-20 bg-gray-900" x-data="{ filter: 'todos' }">
+            <div class="container mx-auto px-6">
+                <h2 class="text-4xl font-extrabold text-center mb-2">Nosso Trabalho</h2>
+                <p class="text-lg text-gray-400 text-center mb-8">Clique em um projeto para ver a galeria completa.</p>
+                <div class="flex justify-center flex-wrap gap-2 md:gap-4 mb-12">
+                    <button @click="filter = 'todos'" :class="{'bg-sky-500 text-white': filter === 'todos', 'bg-gray-700 text-gray-300 hover:bg-gray-600': filter !== 'todos'}" class="px-4 py-2 rounded-lg font-semibold transition">Todos</button>
+                    <button @click="filter = 'eventos'" :class="{'bg-sky-500 text-white': filter === 'eventos', 'bg-gray-700 text-gray-300 hover:bg-gray-600': filter !== 'eventos'}" class="px-4 py-2 rounded-lg font-semibold transition">Eventos</button>
+                    <button @click="filter = 'institucional'" :class="{'bg-sky-500 text-white': filter === 'institucional', 'bg-gray-700 text-gray-300 hover:bg-gray-600': filter !== 'institucional'}" class="px-4 py-2 rounded-lg font-semibold transition">Institucional</button>
+                    <button @click="filter = 'esportes'" :class="{'bg-sky-500 text-white': filter === 'esportes', 'bg-gray-700 text-gray-300 hover:bg-gray-600': filter !== 'esportes'}" class="px-4 py-2 rounded-lg font-semibold transition">Esportes</button>
+                </div>
+                <!-- Grid do Portfólio com classes responsivas do Tailwind -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 auto-rows-[250px] gap-4">
+                    <div @click="openGallery(0)" class="portfolio-item lg:col-span-2 lg:row-span-2 rounded-lg overflow-hidden relative" x-show="filter === 'todos' || filter === 'institucional'"><img src="https://placehold.co/800x800/0EA5E9/FFFFFF?text=Projeto+Institucional" class="w-full h-full object-cover" alt="[Imagem de projeto de vídeo institucional para uma grande empresa]"><div class="overlay absolute inset-0 bg-black/70 flex items-end p-6"><div><h4 class="text-white text-xl font-bold">Vídeo de Marca - Empresa X</h4><p class="text-gray-300">Institucional</p></div></div></div>
+                    <div @click="openGallery(1)" class="portfolio-item lg:col-span-2 rounded-lg overflow-hidden relative" x-show="filter === 'todos' || filter === 'eventos'"><img src="https://placehold.co/800x400/0E7490/FFFFFF?text=Congresso+Anual" class="w-full h-full object-cover" alt="[Imagem de fotografia de um congresso de tecnologia]"><div class="overlay absolute inset-0 bg-black/70 flex items-end p-6"><div><h4 class="text-white text-xl font-bold">Congresso de Tecnologia</h4><p class="text-gray-300">Eventos</p></div></div></div>
+                    <div @click="openGallery(2)" class="portfolio-item rounded-lg overflow-hidden relative" x-show="filter === 'todos' || filter === 'esportes'"><img src="https://placehold.co/400x400/38BDF8/FFFFFF?text=Atleta+em+Ação" class="w-full h-full object-cover" alt="[Imagem de fotografia de um atleta em ação durante uma competição]"><div class="overlay absolute inset-0 bg-black/70 flex items-end p-6"><div><h4 class="text-white text-xl font-bold">Destaque Atleta Y</h4><p class="text-gray-300">Esportes</p></div></div></div>
+                    <div @click="openGallery(3)" class="portfolio-item lg:row-span-2 rounded-lg overflow-hidden relative" x-show="filter === 'todos' || filter === 'eventos'"><img src="https://placehold.co/400x800/7DD3FC/FFFFFF?text=Lançamento+de+Produto" class="w-full h-full object-cover" alt="[Imagem de vídeo de lançamento de um novo produto]"><div class="overlay absolute inset-0 bg-black/70 flex items-end p-6"><div><h4 class="text-white text-xl font-bold">Lançamento de Produto Z</h4><p class="text-gray-300">Eventos</p></div></div></div>
+                    <div @click="openGallery(4)" class="portfolio-item rounded-lg overflow-hidden relative" x-show="filter === 'todos' || filter === 'institucional'"><img src="https://placehold.co/400x400/BAE6FD/FFFFFF?text=Vídeo+de+Treinamento" class="w-full h-full object-cover" alt="[Imagem de vídeo de treinamento corporativo]"><div class="overlay absolute inset-0 bg-black/70 flex items-end p-6"><div><h4 class="text-white text-xl font-bold">Treinamento Interno</h4><p class="text-gray-300">Institucional</p></div></div></div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- SEÇÃO SOBRE NÓS (ATUALIZADA) -->
+        <section id="sobre" class="py-20 bg-gray-900">
+            <div class="container mx-auto px-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <h2 class="text-4xl font-extrabold mb-4">Mais que uma produtora, um <span class="brand-accent">parceiro estratégico.</span></h2>
+                        <p class="text-gray-400 mb-4">A Mac Productions nasceu da crença de que o audiovisual é uma das ferramentas mais poderosas para o crescimento de um negócio. Nossa missão é ir além da técnica e da estética, mergulhando na estratégia dos nossos clientes para criar conteúdo que não apenas encanta, mas também converte.</p>
+                        <p class="text-gray-400">Nossa equipe combina criatividade com uma mentalidade focada em resultados, garantindo que cada projeto, seja ele um evento, institucional ou esportivo, atinja seus objetivos e gere um retorno real sobre o investimento.</p>
+                    </div>
+                    <!-- Placeholder para vídeo vertical -->
+                    <div class="w-full max-w-sm mx-auto aspect-[9/16] bg-gray-800 rounded-2xl flex items-center justify-center shadow-2xl">
+                        <div class="text-center">
+                            <i class="fas fa-play-circle text-gray-600 text-6xl"></i>
+                            <p class="text-gray-500 mt-2">Vídeo Sobre Nós</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO CONTATO -->
+        <section id="contato" class="py-20">
+            <div class="container mx-auto px-6">
+                <div class="bg-gray-800 rounded-lg shadow-2xl p-8 md:p-12 lg:p-16" x-data="{ formSubmitted: false }">
+                    <div x-show="formSubmitted" class="text-center" x-cloak x-transition><h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Obrigado!</h2><p class="text-gray-300 text-lg">Sua mensagem foi enviada com sucesso. Entraremos em contato em breve.</p></div>
+                    <div x-show="!formSubmitted" class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                        <div>
+                            <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Vamos tirar sua ideia do papel?</h2>
+                            <p class="text-gray-400 mb-6">Preencha o formulário ao lado ou entre em contato pelos nossos canais. Nossa equipe está pronta para entender seu desafio e propor a melhor solução audiovisual para o seu negócio.</p>
+                            <div class="space-y-4 text-gray-300">
+                                <p class="flex items-center text-lg"><i class="fas fa-phone mr-3 brand-accent"></i> (48) 99999-8888</p>
+                                <p class="flex items-center text-lg"><i class="fas fa-envelope mr-3 brand-accent"></i> contato@macproductions.com.br</p>
+                                <p class="flex items-center text-lg"><i class="fas fa-map-marker-alt mr-3 brand-accent"></i> Florianópolis, SC - Brasil</p>
+                            </div>
+                        </div>
+                        <form @submit.prevent="formSubmitted = true">
+                            <div class="space-y-4">
+                                <input type="text" placeholder="Seu nome" required class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-sky-500 text-white">
+                                <input type="email" placeholder="Seu melhor e-mail" required class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-sky-500 text-white">
+                                <select required class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-sky-500 text-white"><option value="" disabled selected>Tipo de serviço de interesse</option><option>Produção para Eventos</option><option>Vídeo Institucional</option><option>Produção Esportiva</option><option>Conteúdo para Redes Sociais</option><option>Outro</option></select>
+                                <textarea placeholder="Conte-nos um pouco sobre seu projeto..." rows="5" required class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-sky-500 text-white"></textarea>
+                                <button type="submit" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105">Enviar Mensagem</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- RODAPÉ -->
+    <footer class="bg-gray-900 border-t border-gray-800 py-8">
+        <div class="container mx-auto px-6 text-center text-gray-400">
+            <p>&copy; <span x-text="new Date().getFullYear()"></span> Mac Productions. Todos os direitos reservados.</p>
+            <p class="text-sm mt-2">Produção Audiovisual Estratégica em Florianópolis e Santa Catarina.</p>
+        </div>
+    </footer>
+    
+    <!-- ESTRUTURA DO LIGHTBOX (GALERIA POPUP) -->
+    <div x-show="isGalleryOpen" x-transition class="lightbox" role="dialog" aria-modal="true" x-cloak @keydown.escape.window="closeGallery()" @keydown.arrow-right.window="nextImage()" @keydown.arrow-left.window="prevImage()">
+        <button @click="closeGallery()" class="lightbox-button lightbox-close" aria-label="Fechar galeria">&times;</button>
+        <div class="lightbox-content">
+            <button @click="prevImage()" class="lightbox-button nav-prev" aria-label="Imagem anterior">&#10094;</button>
+            <img :src="galleries[activeGallery][activeImage]" class="lightbox-image" alt="[Imagem da galeria de projetos]">
+            <button @click="nextImage()" class="lightbox-button nav-next" aria-label="Próxima imagem">&#10095;</button>
+        </div>
+        <div class="lightbox-thumbnails">
+            <template x-for="(image, index) in galleries[activeGallery]"><img :src="image" @click="activeImage = index" class="lightbox-thumbnail" :class="{ 'active': activeImage === index }" alt="[Miniatura da imagem da galeria]"></template>
+        </div>
+    </div>
+
+    <script>
+        function pageLogic() {
+            return {
+                isGalleryOpen: false,
+                activeImage: 0,
+                activeGallery: 0,
+                galleries: [
+                    [ 'https://placehold.co/1200x800/0EA5E9/FFFFFF?text=Institucional+1', 'https://placehold.co/1200x800/0EA5E9/FFFFFF?text=Institucional+2', 'https://placehold.co/1200x800/0EA5E9/FFFFFF?text=Institucional+3' ],
+                    [ 'https://placehold.co/1200x800/0E7490/FFFFFF?text=Congresso+1', 'https://placehold.co/1200x800/0E7490/FFFFFF?text=Congresso+2', 'https://placehold.co/1200x800/0E7490/FFFFFF?text=Congresso+3', 'https://placehold.co/1200x800/0E7490/FFFFFF?text=Congresso+4' ],
+                    [ 'https://placehold.co/1200x800/38BDF8/FFFFFF?text=Esportes+1', 'https://placehold.co/1200x800/38BDF8/FFFFFF?text=Esportes+2' ],
+                    [ 'https://placehold.co/800x1200/7DD3FC/FFFFFF?text=Lançamento+1', 'https://placehold.co/800x1200/7DD3FC/FFFFFF?text=Lançamento+2', 'https://placehold.co/800x1200/7DD3FC/FFFFFF?text=Lançamento+3' ],
+                    [ 'https://placehold.co/1200x800/BAE6FD/FFFFFF?text=Treinamento+1' ]
+                ],
+                openGallery(galleryIndex) { this.activeGallery = galleryIndex; this.activeImage = 0; this.isGalleryOpen = true; },
+                closeGallery() { this.isGalleryOpen = false; },
+                nextImage() { this.activeImage = (this.activeImage + 1) % this.galleries[this.activeGallery].length; },
+                prevImage() { this.activeImage = (this.activeImage - 1 + this.galleries[this.activeGallery].length) % this.galleries[this.activeGallery].length; },
+            }
+        }
+
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('pageLogic', pageLogic);
+        });
+    </script>
+
+</body>
+</html>
